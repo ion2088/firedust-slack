@@ -6,9 +6,11 @@
 	  "target": "slackapp-dev"
 	},
 	"runArgs": [
-	  "--network=host",
-	  "-e", "DEV_NAME=${localEnv:DEV_NAME}",
-	  "-e", "DEV_EMAIL=${localEnv:DEV_EMAIL}"
+		"--network=host",
+		"-e", "DEV_NAME=${localEnv:DEV_NAME}",
+		"-e", "DEV_EMAIL=${localEnv:DEV_EMAIL}",
+		"-e", "FIREDUST_API_KEY=${localEnv:FIREDUST_API_KEY}",
+		"-e", "TEST_PYPI_TOKEN=${localEnv:TEST_PYPI_TOKEN}"
 	],
 	"mounts": [
 		// ----------------------------------------
@@ -16,22 +18,25 @@
 		// mac ssh keys
 		"source=/Users/${localEnv:USER_NAME}/.ssh,target=/root/.ssh,type=bind,consistency=cached",
 		// linux ssh keys
-		// "source=/home/$(whoami)/.ssh,target=/root/.ssh,type=bind,consistency=cached",
+		// "source=/home/${localEnv:USER_NAME}/.ssh,target=/root/.ssh,type=bind,consistency=cached",
 		// windows ssh keys
-		// "source=C:\\Users\\$(whoami)\\.ssh,target=/root/.ssh,type=bind,consistency=cached"
+		// "source=C:\\Users\\${localEnv:USER_NAME}\\.ssh,target=/root/.ssh,type=bind,consistency=cached"
 		// TODO: comment out the lines for the OS you are not using
 		// ----------------------------------------
 	],
-	"postCreateCommand": "git config --global user.name $DEV_NAME && git config --global user.email $DEV_EMAIL && chmod 600 /root/.ssh/id_rsa",
+	"postCreateCommand": "bash .devcontainer/configure.sh",
 	"customizations": {
 		"vscode": {
 			"extensions": [
-				"ms-azuretools.vscode-docker",
 				"ms-python.python",
 				"ms-python.vscode-pylance",
-				"charliermarsh.ruff",
+				"ms-python.isort",
 				"ms-python.black-formatter",
-				"github.vscode-github-actions"
+				"charliermarsh.ruff",
+				"github.vscode-github-actions",
+				"github.copilot-chat",
+				"github.copilot",
+				"ms-azuretools.vscode-docker"
 			]
 		}
 	}
