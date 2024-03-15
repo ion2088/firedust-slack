@@ -212,13 +212,13 @@ typing = ["typing-extensions (>=4.8)"]
 
 [[package]]
 name = "firedust"
-version = "0.0.2"
+version = "0.0.3"
 description = "A simple framework to build and deploy AI Assistants."
 optional = false
 python-versions = ">=3.10,<3.13"
 files = [
-    {file = "firedust-0.0.2-py3-none-any.whl", hash = "sha256:05da263a44019fb8bc143cc259357a84b8a4700d749a983bdcdcfd354fcb3edf"},
-    {file = "firedust-0.0.2.tar.gz", hash = "sha256:a4e19680b24bb489b5b86dad1d244880f4ee0036bd58df834117810ae2483d60"},
+    {file = "firedust-0.0.3-py3-none-any.whl", hash = "sha256:2c0d0c2d341530d41002966ef98a2f6a7599dc6b36be4d53eb5bb5516fa0aa80"},
+    {file = "firedust-0.0.3.tar.gz", hash = "sha256:018fd594b11966fb5c9b306f8d29880ad20a7eefcc652cf178ff292516d89197"},
 ]
 
 [package.dependencies]
@@ -1004,4 +1004,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10, <3.13"
-content-hash = "5d89e1885ecacfe0841113345e598a4ddab4682f9f6b9f10c767bdf47574a8cb"
+content-hash = "30de15f439999b3153fc397751da0e752b637308fb39d36622b951ef284298c1"
