@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "slack-firedust"
-version = "0.1.0"
+version = "0.0.1"
 description = "A Slack application template for Firedust"
 authors = ["Ion Tapordei <ion.tapordei@gmail.com>"]
 readme = "README.md"
