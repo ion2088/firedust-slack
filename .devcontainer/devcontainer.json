@@ -10,7 +10,12 @@
 		"-e", "DEV_NAME=${localEnv:DEV_NAME}",
 		"-e", "DEV_EMAIL=${localEnv:DEV_EMAIL}",
 		"-e", "FIREDUST_API_KEY=${localEnv:FIREDUST_API_KEY}",
-		"-e", "TEST_PYPI_TOKEN=${localEnv:TEST_PYPI_TOKEN}"
+		"-e", "TEST_PYPI_TOKEN=${localEnv:TEST_PYPI_TOKEN}",
+		"-e", "SLACK_APP_ID=${localEnv:SLACK_APP_ID}",
+		"-e", "SLACK_CLIENT_ID=${localEnv:SLACK_CLIENT_ID}",
+		"-e", "SLACK_CLIENT_SECRET=${localEnv:SLACK_CLIENT_SECRET}",
+		"-e", "SLACK_SIGNIN_SECRET=${localEnv:SLACK_SIGNIN_SECRET}",
+		"-e", "SLACK_APP_TOKEN=${localEnv:SLACK_APP_TOKEN}"
 	],
 	"mounts": [
 		// ----------------------------------------
