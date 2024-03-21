@@ -30,7 +30,7 @@ build-backend = "poetry.core.masonry.api"
 [[tool.poetry.source]]
 name = "testpypi"
 url = "https://test.pypi.org/simple/"
-priority="secondary"
+priority="supplemental"
 
 [tool.black]
 line-length = 88
