@@ -1,6 +1,6 @@
 import logging
 
-LOG: logging.Logger = logging.getLogger("slack-firedust")
+LOG: logging.Logger = logging.getLogger("slackapp")
 
 
 def configure_logger() -> None:

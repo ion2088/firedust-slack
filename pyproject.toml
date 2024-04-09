@@ -10,7 +10,7 @@ python = "^3.10, <3.13"
 pydantic = "^2.5.3"
 uvicorn = "^0.27.0.post1"
 slack-bolt = "^1.18.1"
-firedust = {version = "^0.0.6", source = "testpypi"}
+firedust = {version = "^0.0.7", source = "testpypi"}
 click = "^8.1.7"
 
 [tool.poetry.dev-dependencies]
