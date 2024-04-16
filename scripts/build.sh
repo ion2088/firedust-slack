@@ -16,3 +16,4 @@ docker login -u="${docker_wizard}" -p="${docker_spell}"
 docker build --target "$APP"-latest . -t "$IMAGE":latest
 aws ecr get-login-password --region eu-west-2 | docker login --username AWS --password-stdin "$IMAGE"
 docker push "$IMAGE":latest
+
