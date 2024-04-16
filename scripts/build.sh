@@ -13,7 +13,7 @@ docker_spell=$(aws secretsmanager get-secret-value --secret-id docker/spell --qu
 docker login -u="${docker_wizard}" -p="${docker_spell}"
 
 # Build and push docker image
-docker build --target "$APP"-latest . -t "$IMAGE":latest
+docker build --target slackapp-prod . -t "$IMAGE":latest
 aws ecr get-login-password --region eu-west-2 | docker login --username AWS --password-stdin "$IMAGE"
 docker push "$IMAGE":latest
 
