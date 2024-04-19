@@ -8,7 +8,13 @@ from slack_bolt.async_app import AsyncAck, AsyncApp, AsyncSay
 from slack_bolt.context.async_context import AsyncBoltContext
 from slack_sdk.models.views import View
 from slack_sdk.web.async_client import AsyncWebClient
-from slack_sdk.web.async_slack_response import AsyncSlackResponse
+
+from slackapp._utils.slack import (
+    assistant_message,
+    get_bot_user_id,
+    get_channel_name,
+    get_user_real_name,
+)
 
 ASSISTANT: Assistant = Assistant.load(assistant_id=UUID(os.environ.get("ASSISTANT_ID")))
 if ASSISTANT.config.interfaces.slack is None:
@@ -75,35 +81,26 @@ async def mention_event(
     client: AsyncWebClient,
     ack: AsyncAck,
 ) -> None:
+    # Acknowledge the incoming event immediately to meet Slack's requirement.
     await ack()
-    LOG.info("Mention event received")
 
-    bot_info: AsyncSlackResponse = await client.auth_test()
-    assert isinstance(bot_info.data, dict)
-    bot_id: str = bot_info.data["user_id"]
-    text = event["text"].replace(f"<@{bot_id}>", ASSISTANT.config.name).strip()
-
-    user_info: AsyncSlackResponse = await client.users_info(user=event["user"])
-    assert isinstance(user_info.data, dict)
-    user_name: str = user_info.data["user"]["real_name"]
-
-    channel_info: AsyncSlackResponse = await client.conversations_info(
-        channel=event["channel"]
+    # Extract the user ID and text from the event.
+    user_name = await get_user_real_name(client, event["user"])
+    channel_name = await get_channel_name(client, event["channel"])
+    bot_user_id = await get_bot_user_id(client)
+    text = event["text"].replace(f"<@{bot_user_id}>", ASSISTANT.config.name).strip()
+    LOG.info(
+        f"Received message from {user_name} in channel {channel_name}: {text[:50]}..."
     )
-    assert isinstance(channel_info.data, dict)
-    channel_name: str = channel_info.data["channel"]["name"]
 
-    message = f"""
-    Slack channel: {channel_name}.
-    
-    Message from {user_name}:
-
-    {text}
-    """
-    # Assuming a hypothetical asynchronous chat.complete method
-    response = ASSISTANT.chat.complete(
-        message, user_id=event["user"]
-    )  # Update if this method is async
+    # Formulate and send a response after processing the incoming message.
+    response = assistant_message(
+        assistant=ASSISTANT,
+        text=text,
+        user_name=user_name,
+        user_id=event["user"],
+        channel_name=channel_name,
+    )
     await say(response)
 
 
