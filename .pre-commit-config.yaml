@@ -9,11 +9,18 @@ repos:
     hooks:
       - id: mypy
         args: [--config-file=mypy.ini]
-        additional_dependencies: [pydantic==2.5.3, httpx, click, fastapi, qdrant_client, pytest]
+        additional_dependencies:
+          - pydantic==2.5.3
+          - httpx
+          - click
+          - fastapi
+          - qdrant_client
+          - pytest
+          - slack_bolt
 
-  -   repo: https://github.com/pycqa/isort
-      rev: 5.13.2
-      hooks:
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
       - id: isort
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit

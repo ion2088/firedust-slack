@@ -1,11 +1,12 @@
-import time
-import click
+import asyncio
 import logging
+import time
 
-from slack_bolt.adapter.socket_mode import SocketModeHandler
+import click
+from slack_bolt.adapter.socket_mode.async_handler import AsyncSocketModeHandler
 
-from slackapp.start import APP, ASSISTANT
 from slackapp._utils.logging import configure_logger
+from slackapp.start import APP, ASSISTANT
 
 configure_logger()
 
@@ -20,10 +21,13 @@ def app() -> None:
 @app.command()
 def start() -> None:
     LOG.info("Starting the Slack app")
-    SocketModeHandler(
-        APP,
-        ASSISTANT.config.interfaces.slack.tokens.app_token,
-    ).start()
+    assert ASSISTANT.config.interfaces.slack is not None
+    assert ASSISTANT.config.interfaces.slack.tokens is not None
+    handler = AsyncSocketModeHandler(
+        APP, ASSISTANT.config.interfaces.slack.tokens.app_token
+    )
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(handler.start_async())
 
 
 @app.command()
