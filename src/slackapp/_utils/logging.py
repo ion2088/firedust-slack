@@ -25,7 +25,7 @@ def configure_logger() -> None:
 
     # Update the formatter of existing handlers
     formatter = logging.Formatter(
-        f"{hashed_key}: {assistant_id}: Slack App: [%(asctime)s - %(name)s - %(levelname)s] - %(message)s"
+        f"{hashed_key}: {assistant_id}: [%(asctime)s - %(name)s - %(levelname)s] - %(message)s"
     )
     console_handler.setFormatter(formatter)
 
