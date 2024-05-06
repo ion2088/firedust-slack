@@ -10,9 +10,12 @@
 		"-e", "DEV_NAME=${localEnv:DEV_NAME}",
 		"-e", "DEV_EMAIL=${localEnv:DEV_EMAIL}",
 		"-e", "FIREDUST_API_KEY=${localEnv:FIREDUST_API_KEY}",
-		"-e", "ASSISTANT_ID=${localEnv:TEST_RON_ASSISTANT_ID}",
-		"-e", "TEST_PYPI_TOKEN=${localEnv:TEST_PYPI_TOKEN}"
+		"-e", "ASSISTANT_ID=${localEnv:TEST_ASSISTANT_ID}",
+		"-e", "TEST_PYPI_TOKEN=${localEnv:TEST_PYPI_TOKEN}",
+		"-e", "SLACK_BOT_TOKEN=${localEnv:SLACK_BOT_TOKEN}",
+		"-e", "SLACK_SIGNING_SECRET=${localEnv:SLACK_SIGNING_SECRET}"
 	],
+	
 	"mounts": [
 		// ----------------------------------------
 		// SSH keys
