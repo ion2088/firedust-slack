@@ -31,6 +31,7 @@ from slack_sdk.models.views import View
 from slack_sdk.web.async_client import AsyncWebClient
 
 from slackapp._utils.assistant import learn_message, load_assistant, reply_to_message
+from slackapp._utils.decorators import catch_errors
 from slackapp._utils.slack import get_bot_user_id, learn_channel_history_on_join
 
 # Initialize the Slack AsyncApp with environment variables
@@ -42,10 +43,11 @@ log = logging.getLogger("slackapp")
 
 
 @app.event("app_mention")
+@catch_errors()
 async def mention_event(
+    client: AsyncWebClient,
     event: Dict[str, Any],
     say: AsyncSay,
-    client: AsyncWebClient,
     ack: AsyncAck,
 ) -> None:
     """
@@ -71,6 +73,7 @@ async def mention_event(
 
 
 @app.event("message")
+@catch_errors()
 async def message(
     client: AsyncWebClient,
     event: Dict[str, Any],
@@ -160,7 +163,6 @@ async def update_home_tab(client: AsyncWebClient, event: Dict[str, Any]) -> None
 async def hello_command(
     ack: AsyncAck,
     say: AsyncSay,
-    context: AsyncBoltContext,
 ) -> None:
     """
     Respond to the /test command.
@@ -176,6 +178,7 @@ async def hello_command(
 
 
 @app.event("member_joined_channel")
+@catch_errors()
 async def member_join(
     client: AsyncWebClient, event: Dict[str, Any], ack: AsyncAck
 ) -> None:
