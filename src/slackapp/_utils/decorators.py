@@ -2,7 +2,7 @@ import asyncio
 import logging
 from typing import Any, Callable
 
-LOG = logging.getLogger("slackapp")
+log = logging.getLogger("slackapp")
 
 
 def retry(
@@ -29,7 +29,7 @@ def retry(
                     if r == max_retries - 1:
                         raise e
                     else:
-                        LOG.error(
+                        log.error(
                             f"Async function {func.__name__} failed with error: {e}. Retrying..."
                         )
                         await asyncio.sleep(delay)

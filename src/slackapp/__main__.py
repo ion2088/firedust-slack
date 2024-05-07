@@ -7,40 +7,42 @@ from slack_bolt.adapter.socket_mode.async_handler import AsyncSocketModeHandler
 
 from slackapp._utils.assistant import load_assistant
 from slackapp._utils.logging import configure_logger
-from slackapp.start import APP
+from slackapp.start import app
 
 configure_logger()
 
-LOG = logging.getLogger("slackapp")
+log = logging.getLogger("slackapp")
 
 
 @click.group()
-def app() -> None:
+def rocket() -> None:
     pass
 
 
-@app.command()
+@rocket.command()
 def start() -> None:
-    LOG.info("Starting the Slack app")
+    log.info("Starting the Slack app")
     assistant = load_assistant()
     assert assistant.config.interfaces.slack is not None
     assert assistant.config.interfaces.slack.tokens is not None
     handler = AsyncSocketModeHandler(
-        APP, assistant.config.interfaces.slack.tokens.app_token
+        app, assistant.config.interfaces.slack.tokens.app_token
     )
     loop = asyncio.get_event_loop()
     loop.run_until_complete(handler.start_async())
 
 
-@app.command()
+@rocket.command()
 def launch() -> None:
-    LOG.info("3")
+    log.info("3")
     time.sleep(1)
-    LOG.info("2")
+    log.info("2")
     time.sleep(1)
-    LOG.info("1")
+    log.info("1")
     time.sleep(1)
-    LOG.info("Blast off!")
+    log.info("Blast off!")
+    time.sleep(1)
+    log.info("Run the slack app with `poetry run python -m slackapp start`")
 
 
 @click.group(name="utils")
@@ -48,8 +50,8 @@ def utils() -> None:
     pass
 
 
-app.add_command(utils)
+rocket.add_command(utils)
 
 
 if __name__ == "__main__":
-    app()
+    rocket()

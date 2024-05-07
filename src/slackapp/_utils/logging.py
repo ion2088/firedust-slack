@@ -3,11 +3,11 @@ import logging
 import os
 from uuid import UUID
 
-LOG: logging.Logger = logging.getLogger("slackapp")
+log: logging.Logger = logging.getLogger("slackapp")
 
 
 def configure_logger() -> None:
-    LOG.setLevel(logging.DEBUG)
+    log.setLevel(logging.DEBUG)
 
     # Create a console handler
     console_handler = logging.StreamHandler()
@@ -30,7 +30,7 @@ def configure_logger() -> None:
     console_handler.setFormatter(formatter)
 
     # Add the handlers to the LOG
-    LOG.addHandler(console_handler)
+    log.addHandler(console_handler)
 
 
 def hash_api_key(api_key: UUID) -> str:
