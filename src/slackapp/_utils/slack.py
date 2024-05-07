@@ -70,7 +70,9 @@ async def get_channel_name(client: AsyncWebClient, channel_id: str) -> str:
     response = await client.conversations_info(channel=channel_id)
     assert isinstance(response.data, dict)
 
-    channel_name: str = response.data["channel"]["name"]
+    channel_name: str = (
+        response.data["channel"]["name"] or response.data["channel"]["id"]
+    )
 
     # Set expiration time to 10 minutes from now
     expiration_time = asyncio.get_event_loop().time() + 600
@@ -183,8 +185,7 @@ async def format_slack_message(
     message = await replace_mentions_with_user_names(client, message)
     formatted_message = f"""
     Slack channel: {channel_name}.
-
-    Message from {user_name}:
+    From {user_name}:
 
     {message}
     """

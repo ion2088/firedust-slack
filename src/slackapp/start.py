@@ -2,25 +2,81 @@ import logging
 import os
 from typing import Any, Dict
 
-from firedust.utils.types.assistant import UserMessage
 from slack_bolt.async_app import AsyncAck, AsyncApp, AsyncSay
 from slack_bolt.context.async_context import AsyncBoltContext
 from slack_sdk.errors import SlackApiError
 from slack_sdk.models.views import View
 from slack_sdk.web.async_client import AsyncWebClient
 
-from slackapp._utils.assistant import load_assistant
-from slackapp._utils.slack import (
-    format_slack_message,
-    get_bot_user_id,
-    learn_channel_history_on_join,
-)
+from slackapp._utils.assistant import learn_message, load_assistant, reply_to_message
+from slackapp._utils.slack import get_bot_user_id, learn_channel_history_on_join
 
 APP = AsyncApp(
     token=os.environ.get("SLACK_BOT_TOKEN"),
     signing_secret=os.environ.get("SLACK_SIGNING_SECRET"),
 )
 LOG = logging.getLogger("slackapp")
+
+
+@APP.event("app_mention")
+async def mention_event(
+    event: Dict[str, Any],
+    say: AsyncSay,
+    client: AsyncWebClient,
+    ack: AsyncAck,
+) -> None:
+    await ack()
+    await say("...")
+    response = await reply_to_message(
+        client=client,
+        message=event["text"],
+        user_id=event["user"],
+        channel_id=event["channel"],
+    )
+    await say(response)
+
+
+@APP.event("message")
+async def message(
+    client: AsyncWebClient,
+    event: Dict[str, Any],
+    context: AsyncBoltContext,
+    say: AsyncSay,
+) -> None:
+    user_id = event.get("user") or event["message"].get("user")
+    bot_user_id = await get_bot_user_id(client)
+    message = event.get("text") or event["message"].get("text")
+
+    # Ignore messages written by the assistant or USLACKBOT
+    if user_id == bot_user_id or user_id == "USLACKBOT":
+        return
+
+    # Ignore messages that mention the assistant, these are handled by the app_mention event
+    if f"<@{bot_user_id}>" in message:
+        return
+
+    # On direct messages, reply to the user
+    if event.get("channel_type") == "im":
+        await say("...")
+        response = await reply_to_message(
+            client=client,
+            message=message,
+            user_id=user_id,
+            channel_id=event["channel"],
+        )
+        await say(response)
+        return
+
+    LOG.info(f"\n\n Received message. Event: {event} \n\n Context: {context} \n\n")
+
+    # All other messages, just add to assistant memory
+    await learn_message(
+        client=client,
+        message=message,
+        user_id=user_id,
+        channel_id=event["channel"],
+        timestamp=float(event["ts"]),
+    )
 
 
 @APP.event("app_home_opened")
@@ -57,66 +113,6 @@ async def hello_command(
     LOG.info("Running /test command")
     await ack()
     await say(f"Hello, <@{context.user_id}>!")
-
-
-@APP.event("app_mention")
-async def mention_event(
-    event: Dict[str, Any],
-    say: AsyncSay,
-    client: AsyncWebClient,
-    ack: AsyncAck,
-) -> None:
-    await ack()
-
-    assistant = load_assistant()
-    formatted_message = await format_slack_message(
-        client=client,
-        message=event["text"],
-        user_id=event["user"],
-        channel_id=event["channel"],
-    )
-    response = assistant.chat.message(formatted_message, user_id=event["channel"])
-
-    await say(response)
-
-
-@APP.event("message")
-async def message(
-    client: AsyncWebClient, event: Dict[str, Any], context: AsyncBoltContext
-) -> None:
-    # Ignore messages written by the assistant or USLACKBOT
-    assistant_bot_id = await client.auth_test()
-    event_user_id = event.get("user") or event["message"].get("user")
-    if event["user"] == assistant_bot_id or event["user"] == "USLACKBOT":
-        return
-
-    # Ignore messages that mention the assistant, these are handled by the app_mention event
-    if f"<@{assistant_bot_id}>" in event["text"]:
-        return
-
-    LOG.info(f"\n\n Received message. Event: {event} \n\n Context: {context} \n\n")
-
-    # Format the message and add it to the assistant's memory
-    message = event.get("text") or event["message"].get("text")
-    channel_id = str(event.get("channel"))
-    timestamp = event.get("ts")
-    formatted_message = await format_slack_message(
-        client=client,
-        message=message,
-        user_id=event_user_id,
-        channel_id=channel_id,
-    )
-    assistant = load_assistant()
-    assistant.learn.chat_messages(
-        messages=[
-            UserMessage(
-                assistant_id=assistant.config.id,
-                user_id=channel_id,
-                timestamp=timestamp,
-                message=formatted_message,
-            )
-        ],
-    )
 
 
 @APP.event("member_joined_channel")
@@ -177,9 +173,7 @@ async def channel_left(
 
 
 @APP.event("channel_deleted")
-async def channel_deleted(
-    client: AsyncWebClient, event: Dict[str, Any], ack: AsyncAck
-) -> None:
+async def channel_deleted(event: Dict[str, Any], ack: AsyncAck) -> None:
     # Acknowledge the incoming event immediately to meet Slack's requirement.
     await ack()
 
@@ -189,9 +183,7 @@ async def channel_deleted(
 
 
 @APP.event("group_left")
-async def group_left(
-    client: AsyncWebClient, event: Dict[str, Any], ack: AsyncAck
-) -> None:
+async def group_left(event: Dict[str, Any], ack: AsyncAck) -> None:
     # Acknowledge the incoming event immediately to meet Slack's requirement.
     await ack()
 
@@ -201,9 +193,7 @@ async def group_left(
 
 
 @APP.event("group_deleted")
-async def group_deleted(
-    client: AsyncWebClient, event: Dict[str, Any], ack: AsyncAck
-) -> None:
+async def group_deleted(event: Dict[str, Any], ack: AsyncAck) -> None:
     # Acknowledge the incoming event immediately to meet Slack's requirement.
     await ack()
 
@@ -213,9 +203,7 @@ async def group_deleted(
 
 
 @APP.event("app_uninstalled")
-async def app_uninstalled(
-    client: AsyncWebClient, event: Dict[str, Any], ack: AsyncAck
-) -> None:
+async def app_uninstalled(client: AsyncWebClient) -> None:
     # Forget history from all channels that the bot was a part of
     channels = await client.conversations_list(types="public_channel,private_channel")
 
