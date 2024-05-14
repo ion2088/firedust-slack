@@ -30,9 +30,9 @@ from slack_sdk.errors import SlackApiError
 from slack_sdk.models.views import View
 from slack_sdk.web.async_client import AsyncWebClient
 
-from slackapp._utils.assistant import learn_message, load_assistant, reply_to_message
-from slackapp._utils.decorators import catch_errors
-from slackapp._utils.slack import get_bot_user_id, learn_channel_history_on_join
+from slackapp.utils.assistant import learn_message, load_assistant, reply_to_message
+from slackapp.utils.decorators import catch_errors
+from slackapp.utils.slack import get_bot_user_id, learn_channel_history_on_join
 
 # Initialize the Slack AsyncApp with environment variables
 app = AsyncApp(
@@ -66,7 +66,7 @@ async def mention_event(
     response = await reply_to_message(
         client=client,
         message=event["text"],
-        user_id=event["user"],
+        user=event["user"],
         channel_id=event["channel"],
     )
     await say(response)
@@ -93,12 +93,12 @@ async def message(
     # Acknowledge the incoming event immediately to meet Slack's requirement.
     await ack()
 
-    user_id = event.get("user") or event["message"].get("user")
+    user = event.get("user") or event["message"].get("user")
     bot_user_id = await get_bot_user_id(client)
     message = event.get("text") or event["message"].get("text")
 
     # Ignore messages written by the assistant or USLACKBOT
-    if user_id == bot_user_id or user_id == "USLACKBOT":
+    if user == bot_user_id or user == "USLACKBOT":
         return
 
     # Ignore messages that mention the assistant directly, they are handled by the mention_event
@@ -111,7 +111,7 @@ async def message(
         response = await reply_to_message(
             client=client,
             message=message,
-            user_id=user_id,
+            user=user,
             channel_id=event["channel"],
         )
         await say(response)
@@ -121,7 +121,7 @@ async def message(
     await learn_message(
         client=client,
         message=message,
-        user_id=user_id,
+        user=user,
         channel_id=event["channel"],
         timestamp=float(event["ts"]),
     )
@@ -239,7 +239,7 @@ async def channel_left(
     if is_assistant:
         # Erase chat history
         assistant = load_assistant()
-        assistant.memory.erase_chat_history(user_id=event["channel"])
+        assistant.memory.erase_chat_history(user=event["channel"])
 
 
 @app.event("channel_deleted")
@@ -255,7 +255,7 @@ async def channel_deleted(event: Dict[str, Any], ack: AsyncAck) -> None:
 
     # Forget channel history
     assistant = load_assistant()
-    assistant.memory.erase_chat_history(user_id=event["channel"])
+    assistant.memory.erase_chat_history(user=event["channel"])
 
 
 @app.event("group_left")
@@ -271,7 +271,7 @@ async def group_left(event: Dict[str, Any], ack: AsyncAck) -> None:
 
     # Forget group history
     assistant = load_assistant()
-    assistant.memory.erase_chat_history(user_id=event["channel"])
+    assistant.memory.erase_chat_history(user=event["channel"])
 
 
 @app.event("group_deleted")
@@ -287,7 +287,7 @@ async def group_deleted(event: Dict[str, Any], ack: AsyncAck) -> None:
 
     # Forget group history
     assistant = load_assistant()
-    assistant.memory.erase_chat_history(user_id=event["channel"])
+    assistant.memory.erase_chat_history(user=event["channel"])
 
 
 @app.event("app_uninstalled")
@@ -306,4 +306,4 @@ async def app_uninstalled(client: AsyncWebClient, ack: AsyncAck) -> None:
     assistant = load_assistant()
     for channel in channels["channels"]:
         # Forget channel history
-        assistant.memory.erase_chat_history(user_id=channel["id"])
+        assistant.memory.erase_chat_history(user=channel["id"])

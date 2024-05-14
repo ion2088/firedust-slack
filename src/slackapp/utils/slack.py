@@ -2,11 +2,11 @@ import asyncio
 import re
 from typing import Dict, List, Tuple
 
-from firedust.assistant import Assistant
+from firedust._private._assistant import Assistant
 from firedust.utils.types.assistant import UserMessage
 from slack_sdk.web.async_client import AsyncWebClient
 
-from slackapp._utils.decorators import retry
+from slackapp.utils.decorators import retry
 
 # A quick cache implementation to store frequently requested values
 _expiration_time = float
@@ -16,24 +16,24 @@ channel_name_cache: Dict[str, Tuple[_value, _expiration_time]] = {}
 
 
 @retry()
-async def get_user_name(client: AsyncWebClient, user_id: str) -> str:
+async def get_user_name(client: AsyncWebClient, user: str) -> str:
     """
     Get the name of a user.
 
     Args:
         client (AsyncWebClient): The Slack client.
-        user_id (str): The user ID of the user.
+        user (str): The user ID of the user.
 
     Returns:
         str: The name of the user.
     """
     # Check if the user name is already cached and not expired
-    if user_id in user_name_cache:
-        cached_value, expiration_time = user_name_cache[user_id]
+    if user in user_name_cache:
+        cached_value, expiration_time = user_name_cache[user]
         if expiration_time > asyncio.get_event_loop().time():
             return cached_value
 
-    response = await client.users_info(user=user_id)
+    response = await client.users_info(user=user)
     assert isinstance(response.data, dict)
 
     user_name: str = response.data["user"].get("real_name") or response.data["user"][
@@ -44,7 +44,7 @@ async def get_user_name(client: AsyncWebClient, user_id: str) -> str:
     expiration_time = asyncio.get_event_loop().time() + 600
 
     # Cache the user name with expiration time
-    user_name_cache[user_id] = (user_name, expiration_time)
+    user_name_cache[user] = (user_name, expiration_time)
 
     return user_name
 
@@ -96,8 +96,8 @@ async def get_bot_user_id(client: AsyncWebClient) -> str:
     """
     response = await client.auth_test()
     assert isinstance(response.data, dict)
-    user_id: str = response.data["user_id"]
-    return user_id
+    user: str = response.data["user_id"]
+    return user
 
 
 async def learn_channel_history_on_join(
@@ -131,13 +131,13 @@ async def learn_channel_history_on_join(
             formatted_message = await format_slack_message(
                 client=client,
                 message=message["text"],
-                user_id=message["user"],
+                user=message["user"],
                 channel_id=channel_id,
             )
             all_messages.append(
                 UserMessage(
-                    assistant_id=assistant.config.id,
-                    user_id=message["user"],
+                    assistant=assistant.config.name,
+                    user=message["user"],
                     message=formatted_message,
                 )
             )
@@ -163,7 +163,7 @@ async def format_slack_message(
     client: AsyncWebClient,
     message: str,
     channel_id: str,
-    user_id: str,
+    user: str,
 ) -> str:
     """
     Format a Slack message for the AI Assistant:
@@ -174,14 +174,14 @@ async def format_slack_message(
     Args:
         client (AsyncWebClient): The Slack client.
         message (str): The message to format.
-        user_id (str): The ID of the user who sent the message.
+        user (str): The ID of the user who sent the message.
         channel_id (str): The ID of the channel where the message was sent.
 
     Returns:
         str: The formatted message.
     """
     channel_name = await get_channel_name(client, channel_id)
-    user_name = await get_user_name(client, user_id)
+    user_name = await get_user_name(client, user)
     message = await replace_mentions_with_user_names(client, message)
     formatted_message = f"""
     Slack channel: {channel_name}.

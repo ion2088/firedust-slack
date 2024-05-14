@@ -5,9 +5,9 @@ import time
 import click
 from slack_bolt.adapter.socket_mode.async_handler import AsyncSocketModeHandler
 
-from slackapp._utils.assistant import load_assistant
-from slackapp._utils.logging import configure_logger
 from slackapp.start import app
+from slackapp.utils.assistant import load_assistant
+from slackapp.utils.logging import configure_logger
 
 configure_logger()
 

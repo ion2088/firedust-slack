@@ -1,11 +1,11 @@
 import os
-from uuid import UUID
 
-from firedust.assistant import Assistant
+import firedust
+from firedust._private._assistant import Assistant
 from firedust.utils.types.assistant import UserMessage
 from slack_sdk.web.async_client import AsyncWebClient
 
-from slackapp._utils.slack import format_slack_message
+from slackapp.utils.slack import format_slack_message
 
 
 def load_assistant() -> Assistant:
@@ -15,11 +15,11 @@ def load_assistant() -> Assistant:
     Returns:
         Assistant: The assistant.
     """
-    assistant_id = os.environ.get("ASSISTANT_ID")
-    if assistant_id is None:
-        raise RuntimeError("ASSISTANT_ID environment variable is not set.")
+    assistant_name = os.environ.get("ASSISTANT_NAME")
+    if assistant_name is None:
+        raise RuntimeError("ASSISTANT_NAME environment variable is not set.")
 
-    assistant = Assistant.load(UUID(assistant_id))
+    assistant = firedust.assistant.load(assistant_name)
     if assistant.config.interfaces.slack is None:
         raise RuntimeError("Slack interface is not configured.")
 
@@ -29,7 +29,7 @@ def load_assistant() -> Assistant:
 async def learn_message(
     client: AsyncWebClient,
     message: str,
-    user_id: str,
+    user: str,
     channel_id: str,
     timestamp: float,
 ) -> None:
@@ -39,7 +39,7 @@ async def learn_message(
     Args:
         client (AsyncWebClient): The Slack client.
         message (str): The message to learn.
-        user_id (str): The user ID.
+        user (str): The user ID.
         channel_id (str): The channel ID.
         timestamp (float): The timestamp of the message.
     """
@@ -47,14 +47,14 @@ async def learn_message(
     formatted_message = await format_slack_message(
         client=client,
         message=message,
-        user_id=user_id,
+        user=user,
         channel_id=channel_id,
     )
     assistant.learn.chat_messages(
         messages=[
             UserMessage(
-                assistant_id=assistant.config.id,
-                user_id=channel_id,
+                assistant=assistant.config.name,
+                user=channel_id,
                 timestamp=timestamp,
                 message=formatted_message,
             )
@@ -65,7 +65,7 @@ async def learn_message(
 async def reply_to_message(
     client: AsyncWebClient,
     message: str,
-    user_id: str,
+    user: str,
     channel_id: str,
 ) -> str:
     """
@@ -74,7 +74,7 @@ async def reply_to_message(
     Args:
         client (AsyncWebClient): The Slack client.
         message (str): The message to reply with.
-        user_id (str): The user ID.
+        user (str): The user ID.
         channel_id (str): The channel ID.
 
     Returns:
@@ -84,8 +84,8 @@ async def reply_to_message(
     formatted_message = await format_slack_message(
         client=client,
         message=message,
-        user_id=user_id,
+        user=user,
         channel_id=channel_id,
     )
-    response: str = assistant.chat.message(formatted_message, user_id=channel_id)
+    response: str = assistant.chat.message(formatted_message, user=channel_id)
     return response

@@ -19,13 +19,13 @@ def configure_logger() -> None:
         raise RuntimeError("FIREDUST_API_KEY environment variable is not set.")
     hashed_key = hash_api_key(api_key)
 
-    assistant_id = os.environ.get("ASSISTANT_ID")
-    if assistant_id is None:
+    assistant = os.environ.get("ASSISTANT_NAME")
+    if assistant is None:
         raise RuntimeError("ASSISTANT_ID environment variable is not set.")
 
     # Update the formatter of existing handlers
     formatter = logging.Formatter(
-        f"{hashed_key}: {assistant_id}: [%(asctime)s - %(name)s - %(levelname)s] - %(message)s"
+        f"{hashed_key}: {assistant}: [%(asctime)s - %(name)s - %(levelname)s] - %(message)s"
     )
     console_handler.setFormatter(formatter)
 
