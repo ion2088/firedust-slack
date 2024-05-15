@@ -9,7 +9,7 @@ Quickstart:
 1. Create an AI assistant with Firedust: https://firedust.ai/quickstarts
 2. Set the environment variables 
     - `FIREDUST_API_KEY`: The API key for the Firedust API. See: https://firedust.ai
-    - `ASSISTANT_ID`: The ID of the AI assistant created with Firedust. See: https://firedust.ai/quickstarts
+    - `ASSISTANT_NAME`: The name of the AI assistant created with Firedust. See: https://firedust.ai/quickstarts
     - `SLACK_SIGNING_SECRET`: The signing secret for the Slack app. See: https://api.slack.com/apps
     - `SLACK_BOT_TOKEN`: The bot token for the Slack app. See: https://api.slack.com/apps
 3. Run the app `poetry run python -m slackapp start`
@@ -26,12 +26,11 @@ from typing import Any, Dict
 
 from slack_bolt.async_app import AsyncAck, AsyncApp, AsyncSay
 from slack_bolt.context.async_context import AsyncBoltContext
-from slack_sdk.errors import SlackApiError
 from slack_sdk.models.views import View
 from slack_sdk.web.async_client import AsyncWebClient
 
 from slackapp.utils.assistant import learn_message, load_assistant, reply_to_message
-from slackapp.utils.decorators import catch_errors
+from slackapp.utils.errors import SlackErrorNotifier
 from slackapp.utils.slack import get_bot_user_id, learn_channel_history_on_join
 
 # Initialize the Slack AsyncApp with environment variables
@@ -43,7 +42,6 @@ log = logging.getLogger("slackapp")
 
 
 @app.event("app_mention")
-@catch_errors()
 async def mention_event(
     client: AsyncWebClient,
     event: Dict[str, Any],
@@ -57,23 +55,27 @@ async def mention_event(
         event: Event data from Slack containing message details.
         say: Method to send messages in the current channel.
         client: Slack WebClient instance.
-        ack: Acknowledgement method to confirm event processing.
+        ack: Acknowledgement method to confirm event processing - required by slack.
     """
-    # Acknowledge the incoming event immediately to meet Slack's requirement.
-    await ack()
-
-    await say("...")
-    response = await reply_to_message(
-        client=client,
-        message=event["text"],
-        user=event["user"],
-        channel_id=event["channel"],
-    )
-    await say(response)
+    try:
+        await ack()
+        await say("...")
+        reply = await reply_to_message(
+            client=client,
+            message=event["text"],
+            user=event["user"],
+            channel_id=event["channel"],
+        )
+        await say(reply)
+    except Exception as e:
+        slack_error = SlackErrorNotifier(
+            str(e), client=client, channel_id=event["channel"]
+        )
+        await slack_error.notify()
+        raise slack_error
 
 
 @app.event("message")
-@catch_errors()
 async def message(
     client: AsyncWebClient,
     event: Dict[str, Any],
@@ -90,41 +92,47 @@ async def message(
         event: Event data from Slack containing message details.
         say: Method to send messages in the current channel.
     """
-    # Acknowledge the incoming event immediately to meet Slack's requirement.
-    await ack()
+    try:
+        await ack()
+        user = event.get("user") or event["message"].get("user")
+        bot_user_id = await get_bot_user_id(client)
+        message = event.get("text") or event["message"].get("text")
 
-    user = event.get("user") or event["message"].get("user")
-    bot_user_id = await get_bot_user_id(client)
-    message = event.get("text") or event["message"].get("text")
+        # Ignore messages written by the assistant or USLACKBOT
+        if user == bot_user_id or user == "USLACKBOT":
+            return
 
-    # Ignore messages written by the assistant or USLACKBOT
-    if user == bot_user_id or user == "USLACKBOT":
-        return
+        # Ignore messages that mention the assistant directly, they are handled by the mention_event
+        if f"<@{bot_user_id}>" in message:
+            return
 
-    # Ignore messages that mention the assistant directly, they are handled by the mention_event
-    if f"<@{bot_user_id}>" in message:
-        return
+        # On direct messages, reply to the user
+        if event.get("channel_type") == "im":
+            await say("...")
+            response = await reply_to_message(
+                client=client,
+                message=message,
+                user=user,
+                channel_id=event["channel"],
+            )
+            await say(response)
+            return
 
-    # On direct messages, reply to the user
-    if event.get("channel_type") == "im":
-        await say("...")
-        response = await reply_to_message(
+        # For all other messages, add to assistant memory
+        await learn_message(
             client=client,
             message=message,
             user=user,
             channel_id=event["channel"],
+            timestamp=float(event["ts"]),
         )
-        await say(response)
-        return
 
-    # For all other messages, add to assistant memory
-    await learn_message(
-        client=client,
-        message=message,
-        user=user,
-        channel_id=event["channel"],
-        timestamp=float(event["ts"]),
-    )
+    except Exception as e:
+        slack_error = SlackErrorNotifier(
+            str(e), client=client, channel_id=event["channel"]
+        )
+        await slack_error.notify()
+        raise slack_error
 
 
 @app.event("app_home_opened")
@@ -136,9 +144,9 @@ async def update_home_tab(client: AsyncWebClient, event: Dict[str, Any]) -> None
         client: Slack WebClient instance.
         event: Event data from Slack containing user details.
     """
-    assistant = load_assistant()
-    assert assistant.config.interfaces.slack is not None  # keep mypy happy
     try:
+        assistant = load_assistant()
+        assert assistant.config.interfaces.slack is not None  # keep mypy happy
         view = View(
             type="home",
             blocks=[
@@ -156,7 +164,9 @@ async def update_home_tab(client: AsyncWebClient, event: Dict[str, Any]) -> None
             view=view.to_dict(),
         )
     except Exception as e:
-        log.error(f"Error publishing home tab: {e}")
+        slack_error = SlackErrorNotifier(str(e))
+        await slack_error.notify()
+        raise slack_error
 
 
 @app.command("/test")
@@ -172,13 +182,16 @@ async def hello_command(
         say: Method to send messages in the current channel.
         context: Additional context data, including the user's ID.
     """
-    log.info("Running /test command")
-    await ack()
-    await say("Testing, testing, 1, 2, 3!")
+    try:
+        await ack()
+        await say("Testing, testing, 1, 2, 3!")
+    except Exception as e:
+        slack_error = SlackErrorNotifier(str(e))
+        await slack_error.notify()
+        raise slack_error
 
 
 @app.event("member_joined_channel")
-@catch_errors()
 async def member_join(
     client: AsyncWebClient, event: Dict[str, Any], ack: AsyncAck
 ) -> None:
@@ -190,28 +203,29 @@ async def member_join(
         event: Event data from Slack containing member and channel details.
         ack: Acknowledgement method to confirm event processing.
     """
-    # Acknowledge the incoming event immediately to meet Slack's requirement.
-    await ack()
+    try:
+        # Acknowledge the incoming event immediately to meet Slack's requirement.
+        await ack()
 
-    # Check if the event is triggered by the assistant
-    bot_id = await get_bot_user_id(client)
-    is_assistant = event["user"] == bot_id
+        # Check if the event is triggered by the assistant
+        bot_id = await get_bot_user_id(client)
+        is_assistant = event["user"] == bot_id
 
-    # If the assistant joined the channel
-    if is_assistant:
-        # Say hello and learn the channel's message history
-        assistant = load_assistant()
-        await client.chat_postMessage(
-            channel=event["channel"],
-            text=f"Hello! I'm {assistant.config.name}, a helpful AI assistant. To interact with me, just mention my name or send me a direct message.",
-        )
-        try:
+        # If the assistant joined the channel
+        if is_assistant:
+            # Say hello and learn the channel's message history
+            assistant = load_assistant()
+            await client.chat_postMessage(
+                channel=event["channel"],
+                text=f"Hello! I'm {assistant.config.name}, a helpful AI assistant. To interact with me, just mention my name or send me a direct message.",
+            )
             await learn_channel_history_on_join(
                 assistant=assistant, client=client, channel_id=event["channel"]
             )
-        except SlackApiError as e:
-            log.error(f"Error learning channel history: {e}")
-            raise e
+    except Exception as e:
+        slack_error = SlackErrorNotifier(str(e))
+        await slack_error.notify()
+        raise slack_error
 
 
 @app.event("channel_left")
@@ -230,16 +244,21 @@ async def channel_left(
         context: Additional context data about the bot's status.
         ack: Acknowledgement method to confirm event processing.
     """
-    await ack()
 
-    bot_id = await get_bot_user_id(client)
-    is_assistant = context.get("bot_user_id", None) == bot_id
+    try:
+        await ack()
+        bot_id = await get_bot_user_id(client)
+        is_assistant = context.get("bot_user_id", None) == bot_id
 
-    # If the assistant left the channel
-    if is_assistant:
-        # Erase chat history
-        assistant = load_assistant()
-        assistant.memory.erase_chat_history(user=event["channel"])
+        # If the assistant left the channel
+        if is_assistant:
+            # Erase chat history
+            assistant = load_assistant()
+            assistant.memory.erase_chat_history(user=event["channel"])
+    except Exception as e:
+        slack_error = SlackErrorNotifier(str(e))
+        await slack_error.notify()
+        raise slack_error
 
 
 @app.event("channel_deleted")
@@ -251,11 +270,15 @@ async def channel_deleted(event: Dict[str, Any], ack: AsyncAck) -> None:
         event: Event data from Slack containing channel details.
         ack: Acknowledgement method to confirm event processing.
     """
-    await ack()
-
-    # Forget channel history
-    assistant = load_assistant()
-    assistant.memory.erase_chat_history(user=event["channel"])
+    try:
+        await ack()
+        # Forget channel history
+        assistant = load_assistant()
+        assistant.memory.erase_chat_history(user=event["channel"])
+    except Exception as e:
+        slack_error = SlackErrorNotifier(str(e))
+        await slack_error.notify()
+        raise slack_error
 
 
 @app.event("group_left")
@@ -267,11 +290,14 @@ async def group_left(event: Dict[str, Any], ack: AsyncAck) -> None:
         event: Event data from Slack containing group details.
         ack: Acknowledgement method to confirm event processing.
     """
-    await ack()
-
-    # Forget group history
-    assistant = load_assistant()
-    assistant.memory.erase_chat_history(user=event["channel"])
+    try:
+        await ack()
+        assistant = load_assistant()
+        assistant.memory.erase_chat_history(user=event["channel"])
+    except Exception as e:
+        slack_error = SlackErrorNotifier(str(e))
+        await slack_error.notify()
+        raise slack_error
 
 
 @app.event("group_deleted")
@@ -283,11 +309,14 @@ async def group_deleted(event: Dict[str, Any], ack: AsyncAck) -> None:
         event: Event data from Slack containing group details.
         ack: Acknowledgement method to confirm event processing.
     """
-    await ack()
-
-    # Forget group history
-    assistant = load_assistant()
-    assistant.memory.erase_chat_history(user=event["channel"])
+    try:
+        await ack()
+        assistant = load_assistant()
+        assistant.memory.erase_chat_history(user=event["channel"])
+    except Exception as e:
+        slack_error = SlackErrorNotifier(str(e))
+        await slack_error.notify()
+        raise slack_error
 
 
 @app.event("app_uninstalled")
@@ -298,12 +327,15 @@ async def app_uninstalled(client: AsyncWebClient, ack: AsyncAck) -> None:
     Args:
         client: Slack WebClient instance.
     """
-    await ack()
-
-    # Forget history from all channels that the bot was a part of
-    channels = await client.conversations_list(types="public_channel,private_channel")
-
-    assistant = load_assistant()
-    for channel in channels["channels"]:
-        # Forget channel history
-        assistant.memory.erase_chat_history(user=channel["id"])
+    try:
+        await ack()
+        channels = await client.conversations_list(
+            types="public_channel,private_channel"
+        )
+        assistant = load_assistant()
+        for channel in channels["channels"]:
+            assistant.memory.erase_chat_history(user=channel["id"])
+    except Exception as e:
+        slack_error = SlackErrorNotifier(str(e))
+        await slack_error.notify()
+        raise slack_error

@@ -71,7 +71,7 @@ async def get_channel_name(client: AsyncWebClient, channel_id: str) -> str:
     assert isinstance(response.data, dict)
 
     channel_name: str = (
-        response.data["channel"]["name"] or response.data["channel"]["id"]
+        response.data["channel"].get("name") or response.data["channel"]["id"]
     )
 
     # Set expiration time to 10 minutes from now
