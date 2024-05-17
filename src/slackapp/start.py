@@ -30,7 +30,7 @@ from slack_sdk.models.views import View
 from slack_sdk.web.async_client import AsyncWebClient
 
 from slackapp.utils.assistant import learn_message, load_assistant, reply_to_message
-from slackapp.utils.errors import SlackErrorNotifier
+from slackapp.utils.errors import SlackAppError
 from slackapp.utils.slack import get_bot_user_id, learn_channel_history_on_join
 
 # Initialize the Slack AsyncApp with environment variables
@@ -68,11 +68,7 @@ async def mention_event(
         )
         await say(reply)
     except Exception as e:
-        slack_error = SlackErrorNotifier(
-            str(e), client=client, channel_id=event["channel"]
-        )
-        await slack_error.notify()
-        raise slack_error
+        raise SlackAppError(message=str(e), client=client, channel_id=event["channel"])
 
 
 @app.event("message")
@@ -94,9 +90,16 @@ async def message(
     """
     try:
         await ack()
-        user = event.get("user") or event["message"].get("user")
+        user = event.get("user") or event.get("message", {}).get("user")
         bot_user_id = await get_bot_user_id(client)
-        message = event.get("text") or event["message"].get("text")
+
+        message = event.get("text")
+        if message is None:
+            message = event.get("message", {}).get("text")
+
+        # Ignore empty messages
+        if not message:
+            return
 
         # Ignore messages written by the assistant or USLACKBOT
         if user == bot_user_id or user == "USLACKBOT":
@@ -106,7 +109,7 @@ async def message(
         if f"<@{bot_user_id}>" in message:
             return
 
-        # On direct messages, reply to the user
+        # Reply to direct messages
         if event.get("channel_type") == "im":
             await say("...")
             response = await reply_to_message(
@@ -115,10 +118,12 @@ async def message(
                 user=user,
                 channel_id=event["channel"],
             )
+            if event.get("files"):
+                response += "\nAlso, I see that you attached some files, but I'm not able to process them yet."
             await say(response)
             return
 
-        # For all other messages, add to assistant memory
+        # All other messages add to assistant memory
         await learn_message(
             client=client,
             message=message,
@@ -128,11 +133,7 @@ async def message(
         )
 
     except Exception as e:
-        slack_error = SlackErrorNotifier(
-            str(e), client=client, channel_id=event["channel"]
-        )
-        await slack_error.notify()
-        raise slack_error
+        raise SlackAppError(message=str(e), client=client, channel_id=event["channel"])
 
 
 @app.event("app_home_opened")
@@ -164,9 +165,7 @@ async def update_home_tab(client: AsyncWebClient, event: Dict[str, Any]) -> None
             view=view.to_dict(),
         )
     except Exception as e:
-        slack_error = SlackErrorNotifier(str(e))
-        await slack_error.notify()
-        raise slack_error
+        raise SlackAppError(message=str(e))
 
 
 @app.command("/test")
@@ -186,9 +185,7 @@ async def hello_command(
         await ack()
         await say("Testing, testing, 1, 2, 3!")
     except Exception as e:
-        slack_error = SlackErrorNotifier(str(e))
-        await slack_error.notify()
-        raise slack_error
+        raise SlackAppError(message=str(e))
 
 
 @app.event("member_joined_channel")
@@ -223,9 +220,7 @@ async def member_join(
                 assistant=assistant, client=client, channel_id=event["channel"]
             )
     except Exception as e:
-        slack_error = SlackErrorNotifier(str(e))
-        await slack_error.notify()
-        raise slack_error
+        raise SlackAppError(message=str(e))
 
 
 @app.event("channel_left")
@@ -256,9 +251,7 @@ async def channel_left(
             assistant = load_assistant()
             assistant.memory.erase_chat_history(user=event["channel"])
     except Exception as e:
-        slack_error = SlackErrorNotifier(str(e))
-        await slack_error.notify()
-        raise slack_error
+        raise SlackAppError(message=str(e))
 
 
 @app.event("channel_deleted")
@@ -276,9 +269,7 @@ async def channel_deleted(event: Dict[str, Any], ack: AsyncAck) -> None:
         assistant = load_assistant()
         assistant.memory.erase_chat_history(user=event["channel"])
     except Exception as e:
-        slack_error = SlackErrorNotifier(str(e))
-        await slack_error.notify()
-        raise slack_error
+        raise SlackAppError(message=str(e))
 
 
 @app.event("group_left")
@@ -295,9 +286,7 @@ async def group_left(event: Dict[str, Any], ack: AsyncAck) -> None:
         assistant = load_assistant()
         assistant.memory.erase_chat_history(user=event["channel"])
     except Exception as e:
-        slack_error = SlackErrorNotifier(str(e))
-        await slack_error.notify()
-        raise slack_error
+        raise SlackAppError(message=str(e))
 
 
 @app.event("group_deleted")
@@ -314,9 +303,7 @@ async def group_deleted(event: Dict[str, Any], ack: AsyncAck) -> None:
         assistant = load_assistant()
         assistant.memory.erase_chat_history(user=event["channel"])
     except Exception as e:
-        slack_error = SlackErrorNotifier(str(e))
-        await slack_error.notify()
-        raise slack_error
+        raise SlackAppError(message=str(e))
 
 
 @app.event("app_uninstalled")
@@ -336,6 +323,4 @@ async def app_uninstalled(client: AsyncWebClient, ack: AsyncAck) -> None:
         for channel in channels["channels"]:
             assistant.memory.erase_chat_history(user=channel["id"])
     except Exception as e:
-        slack_error = SlackErrorNotifier(str(e))
-        await slack_error.notify()
-        raise slack_error
+        raise SlackAppError(message=str(e))

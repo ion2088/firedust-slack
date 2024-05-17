@@ -352,13 +352,13 @@ typing = ["typing-extensions (>=4.8)"]
 
 [[package]]
 name = "firedust"
-version = "0.0.22"
+version = "0.0.24"
 description = "A simple framework to build and deploy AI tools."
 optional = false
 python-versions = ">=3.10,<3.13"
 files = [
-    {file = "firedust-0.0.22-py3-none-any.whl", hash = "sha256:b5705f8b2a3332c2d44fb9f75e9c533eb664f0d64ab14b76ca1e043235f2e4cf"},
-    {file = "firedust-0.0.22.tar.gz", hash = "sha256:429156eed2a94f17c8c16db5e73256e139fad192a6610379f90fb9ea7f61a326"},
+    {file = "firedust-0.0.24-py3-none-any.whl", hash = "sha256:5b379e853c61ddd16793bd47fc216faeddbcb1b64a47ca94eb0db2fc208a5793"},
+    {file = "firedust-0.0.24.tar.gz", hash = "sha256:bd55cae15208e9f0b69d896700c7641ca5c6cb5660e5146c496eafa877bd3c73"},
 ]
 
 [package.dependencies]
@@ -857,13 +857,13 @@ ptyprocess = ">=0.5"
 
 [[package]]
 name = "platformdirs"
-version = "4.2.1"
+version = "4.2.2"
 description = "A small Python package for determining appropriate platform-specific dirs, e.g. a `user data dir`."
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "platformdirs-4.2.1-py3-none-any.whl", hash = "sha256:17d5a1161b3fd67b390023cb2d3b026bbd40abde6fdb052dfbd3a29c3ba22ee1"},
-    {file = "platformdirs-4.2.1.tar.gz", hash = "sha256:031cd18d4ec63ec53e82dceaac0417d218a6863f7745dfcc9efe7793b7039bdf"},
+    {file = "platformdirs-4.2.2-py3-none-any.whl", hash = "sha256:2d7a1657e36a80ea911db832a8a6ece5ee53d8de21edd5cc5879af6530b1bfee"},
+    {file = "platformdirs-4.2.2.tar.gz", hash = "sha256:38b7b51f512eed9e84a22788b4bce1de17c0adb134d6becb09836e37d8654cd3"},
 ]
 
 [package.extras]
@@ -1225,17 +1225,17 @@ testing-without-asyncio = ["Flask-Sockets (>=0.2,<1)", "Jinja2 (==3.0.3)", "Werk
 
 [[package]]
 name = "slack-sdk"
-version = "3.27.1"
+version = "3.27.2"
 description = "The Slack API Platform SDK for Python"
 optional = false
 python-versions = ">=3.6"
 files = [
-    {file = "slack_sdk-3.27.1-py2.py3-none-any.whl", hash = "sha256:c108e509160cf1324c5c8b1f47ca52fb5e287021b8caf9f4ec78ad737ab7b1d9"},
-    {file = "slack_sdk-3.27.1.tar.gz", hash = "sha256:85d86b34d807c26c8bb33c1569ec0985876f06ae4a2692afba765b7a5490d28c"},
+    {file = "slack_sdk-3.27.2-py2.py3-none-any.whl", hash = "sha256:af97158e6ac7f667e158e8036e63dc1f79db9bd36216a33c10fcc49be7c2f30c"},
+    {file = "slack_sdk-3.27.2.tar.gz", hash = "sha256:bb145bf2bd93b60a17cd55c05cb15868c9a07d845b6fb608c798b50bce21cb99"},
 ]
 
 [package.extras]
-optional = ["SQLAlchemy (>=1.4,<3)", "aiodns (>1.0)", "aiohttp (>=3.7.3,<4)", "boto3 (<=2)", "websocket-client (>=1,<2)", "websockets (>=10,<11)", "websockets (>=9.1,<10)"]
+optional = ["SQLAlchemy (>=1.4,<3)", "aiodns (>1.0)", "aiohttp (>=3.7.3,<4)", "boto3 (<=2)", "websocket-client (>=1,<2)", "websockets (>=9.1,<13)"]
 
 [[package]]
 name = "sniffio"
@@ -1460,4 +1460,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10, <3.13"
-content-hash = "840420a25e1854acfabfb838f0f851feba4a32f3106b872f7b1fb9d5d6b7174d"
+content-hash = "0477acfd24e5e8ded5f76c6f1ca55bd2c0f099a5ee105d68762edf185bbc764c"
