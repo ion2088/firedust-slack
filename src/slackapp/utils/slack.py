@@ -150,7 +150,7 @@ async def learn_channel_history_on_join(
         cursor = response["response_metadata"]["next_cursor"]
 
     # Save messages to the assistant's memory
-    assistant.learn.chat_messages(messages=all_messages)
+    await assistant.learn.chat_messages(messages=all_messages)
 
     # Notify channel that the assistant has learned channel history
     await client.chat_postMessage(

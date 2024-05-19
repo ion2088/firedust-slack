@@ -21,15 +21,17 @@ def rocket() -> None:
 
 @rocket.command()
 def start() -> None:
-    log.info("Starting the Slack app")
-    assistant = load_assistant()
-    assert assistant.config.interfaces.slack is not None
-    assert assistant.config.interfaces.slack.tokens is not None
-    handler = AsyncSocketModeHandler(
-        app, assistant.config.interfaces.slack.tokens.app_token
-    )
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(handler.start_async())
+    async def async_start() -> None:
+        log.info("Starting the Slack app")
+        assistant = await load_assistant()
+        assert assistant.config.interfaces.slack is not None
+        assert assistant.config.interfaces.slack.tokens is not None
+        handler = AsyncSocketModeHandler(
+            app, assistant.config.interfaces.slack.tokens.app_token
+        )
+        await handler.start_async()
+
+    asyncio.run(async_start())
 
 
 @rocket.command()

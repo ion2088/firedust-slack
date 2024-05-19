@@ -352,13 +352,13 @@ typing = ["typing-extensions (>=4.8)"]
 
 [[package]]
 name = "firedust"
-version = "0.0.24"
+version = "0.0.25"
 description = "A simple framework to build and deploy AI tools."
 optional = false
 python-versions = ">=3.10,<3.13"
 files = [
-    {file = "firedust-0.0.24-py3-none-any.whl", hash = "sha256:5b379e853c61ddd16793bd47fc216faeddbcb1b64a47ca94eb0db2fc208a5793"},
-    {file = "firedust-0.0.24.tar.gz", hash = "sha256:bd55cae15208e9f0b69d896700c7641ca5c6cb5660e5146c496eafa877bd3c73"},
+    {file = "firedust-0.0.25-py3-none-any.whl", hash = "sha256:404a6d5685b15d753a5fa686e8fe57f7aa493eec5f3070c20d4297e689a33234"},
+    {file = "firedust-0.0.25.tar.gz", hash = "sha256:6a9a970b61457b6ac9dfaff23464afb5a7a06e1062a74acb28142402d684102c"},
 ]
 
 [package.dependencies]
@@ -1460,4 +1460,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10, <3.13"
-content-hash = "0477acfd24e5e8ded5f76c6f1ca55bd2c0f099a5ee105d68762edf185bbc764c"
+content-hash = "edcaf46504a3379063192321c14215cd9262b679f023111426a70e468a0dfaae"

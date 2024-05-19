@@ -8,7 +8,7 @@ from slack_sdk.web.async_client import AsyncWebClient
 from slackapp.utils.slack import format_slack_message
 
 
-def load_assistant() -> Assistant:
+async def load_assistant() -> Assistant:
     """
     Loads the assistant using the ASSISTANT_ID environment variable.
 
@@ -19,7 +19,7 @@ def load_assistant() -> Assistant:
     if assistant_name is None:
         raise RuntimeError("ASSISTANT_NAME environment variable is not set.")
 
-    assistant = firedust.assistant.load(assistant_name)
+    assistant = await firedust.assistant.async_load(assistant_name)
     if assistant.config.interfaces.slack is None:
         raise RuntimeError("Slack interface is not configured.")
 
@@ -43,14 +43,14 @@ async def learn_message(
         channel_id (str): The channel ID.
         timestamp (float): The timestamp of the message.
     """
-    assistant = load_assistant()
+    assistant = await load_assistant()
     formatted_message = await format_slack_message(
         client=client,
         message=message,
         user=user,
         channel_id=channel_id,
     )
-    assistant.learn.chat_messages(
+    await assistant.learn.chat_messages(
         messages=[
             UserMessage(
                 assistant=assistant.config.name,
@@ -80,12 +80,12 @@ async def reply_to_message(
     Returns:
         str: The response message.
     """
-    assistant = load_assistant()
+    assistant = await load_assistant()
     formatted_message = await format_slack_message(
         client=client,
         message=message,
         user=user,
         channel_id=channel_id,
     )
-    response: str = assistant.chat.message(formatted_message, user=channel_id)
+    response: str = await assistant.chat.message(formatted_message, user=channel_id)
     return response

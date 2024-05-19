@@ -146,7 +146,7 @@ async def update_home_tab(client: AsyncWebClient, event: Dict[str, Any]) -> None
         event: Event data from Slack containing user details.
     """
     try:
-        assistant = load_assistant()
+        assistant = await load_assistant()
         assert assistant.config.interfaces.slack is not None  # keep mypy happy
         view = View(
             type="home",
@@ -211,7 +211,7 @@ async def member_join(
         # If the assistant joined the channel
         if is_assistant:
             # Say hello and learn the channel's message history
-            assistant = load_assistant()
+            assistant = await load_assistant()
             await client.chat_postMessage(
                 channel=event["channel"],
                 text=f"Hello! I'm {assistant.config.name}, a helpful AI assistant. To interact with me, just mention my name or send me a direct message.",
@@ -248,7 +248,7 @@ async def channel_left(
         # If the assistant left the channel
         if is_assistant:
             # Erase chat history
-            assistant = load_assistant()
+            assistant = await load_assistant()
             assistant.memory.erase_chat_history(user=event["channel"])
     except Exception as e:
         raise SlackAppError(message=str(e))
@@ -266,8 +266,8 @@ async def channel_deleted(event: Dict[str, Any], ack: AsyncAck) -> None:
     try:
         await ack()
         # Forget channel history
-        assistant = load_assistant()
-        assistant.memory.erase_chat_history(user=event["channel"])
+        assistant = await load_assistant()
+        await assistant.memory.erase_chat_history(user=event["channel"])
     except Exception as e:
         raise SlackAppError(message=str(e))
 
@@ -283,8 +283,8 @@ async def group_left(event: Dict[str, Any], ack: AsyncAck) -> None:
     """
     try:
         await ack()
-        assistant = load_assistant()
-        assistant.memory.erase_chat_history(user=event["channel"])
+        assistant = await load_assistant()
+        await assistant.memory.erase_chat_history(user=event["channel"])
     except Exception as e:
         raise SlackAppError(message=str(e))
 
@@ -300,8 +300,8 @@ async def group_deleted(event: Dict[str, Any], ack: AsyncAck) -> None:
     """
     try:
         await ack()
-        assistant = load_assistant()
-        assistant.memory.erase_chat_history(user=event["channel"])
+        assistant = await load_assistant()
+        await assistant.memory.erase_chat_history(user=event["channel"])
     except Exception as e:
         raise SlackAppError(message=str(e))
 
@@ -319,8 +319,8 @@ async def app_uninstalled(client: AsyncWebClient, ack: AsyncAck) -> None:
         channels = await client.conversations_list(
             types="public_channel,private_channel"
         )
-        assistant = load_assistant()
+        assistant = await load_assistant()
         for channel in channels["channels"]:
-            assistant.memory.erase_chat_history(user=channel["id"])
+            await assistant.memory.erase_chat_history(user=channel["id"])
     except Exception as e:
         raise SlackAppError(message=str(e))
