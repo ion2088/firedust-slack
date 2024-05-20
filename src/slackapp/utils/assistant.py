@@ -93,5 +93,6 @@ async def reply_to_message(
         user=user,
         channel_id=channel_id,
     )
-    response: str = await assistant.chat.message(formatted_message, user=channel_id)
-    return response
+    response = await assistant.chat.message(formatted_message, user=channel_id)
+    reply: str = response.message
+    return reply

@@ -7,14 +7,12 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10, <3.13"
+firedust = "^0.0.26"
 pydantic = "^2.5.3"
 uvicorn = "^0.27.0.post1"
 slack-bolt = "^1.18.1"
 click = "^8.1.7"
 aiohttp = "^3.9.5"
-firedust = "^0.0.25"
-
-[tool.poetry.dev-dependencies]
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.3.1"
@@ -24,7 +22,6 @@ isort = "^5.13.2"
 mypy = "^1.8.0"
 pre-commit = "^3.6.0"
 ipython = "^8.21.0"
-
 
 [build-system]
 requires = ["poetry-core"]
