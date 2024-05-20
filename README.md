@@ -1,14 +1,14 @@
 # AI Slack Assistant
 
-This is a simple implementation of an AI Slack Assistant using Firedust AI. The assistant can be added to your Slack workspace and channels to help you with various tasks. It can answer questions, provide information, and even recall old messages from the channel history. The assistant is built using Firedust AI, a powerful AI platform that enables you to create intelligent conversational agents for your applications.
+A simple implementation of a Slack app connected to an AI assistant, created with [firedust](https://github.com/ion2088/firedust). It handles group chats, direct messages and learns the channel message history when added to a group. The conversations are kept private within individual groups and with specific users. The assistant has a persistent memory and recalls relevant information to respond to users. To customize the assistant and add your data to its memory see examples [here](https://github.com/ion2088/firedust/tree/master/examples).
 
 
 ## Quickstart
 
 ### 0. End Game
-The quickest way to deploy the assistant on slack is to use Firedust interface deploy capabilities. You can set it up and running in a few minutes by following this example [Firedust AI Quickstarts](https://firedust.ai/quickstarts).
+The quickest way to deploy the assistant on Slack is to use [firedust](https://github.com/ion2088/firedust) interface deploy capabilities. You can set it up and running in a few minutes by following this example [Firedust AI Quickstarts](https://firedust.ai/quickstarts).
 
-To deploy the assistant on your own server, follow the steps below.
+To deploy the app on your server, follow the steps below.
 
 ### 1. Prerequisites
 - Python 3.10+
@@ -20,10 +20,10 @@ poetry install
 ```
 
 ### 3. Create an assistant
-Create an AI assistant on Firedust AI and note down the API key. You can create an assistant by following the instructions [here](https://firedust.ai/docs/quickstart).
+Create an AI assistant using [firedust](https://github.com/ion2088/firedust) and note down the API key. [Example](https://github.com/ion2088/firedust/tree/master/examples).
 
 ### 4. Create a Slack App
-Create a new Slack app and note down the signing secret and bot token. You can create a new app by following the instructions [here](https://api.slack.com/apps?new_app).
+Create a new Slack app and note down the signing secret and bot token. [Example](https://api.slack.com/apps?new_app).
 
 ### 5. Environment Variables
 Set up the following environment variables:
