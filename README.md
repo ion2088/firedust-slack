@@ -1,12 +1,12 @@
 # AI Slack Assistant
 
-A simple implementation of a Slack app connected to an AI assistant, created with [firedust](https://github.com/ion2088/firedust). It handles group chats, direct messages and learns the channel message history when added to a group. The conversations are kept private within individual groups and with specific users. The assistant has a persistent memory and recalls relevant information to respond to users. To customize the assistant and add your data to its memory see examples [here](https://github.com/ion2088/firedust/tree/master/examples).
+A simple implementation of a Slack app connected to an AI assistant, created with [firedust](https://github.com/ion2088/firedust). It handles group chats, direct messages and learns the channel message history when added to a group. The conversations are kept private within individual groups and with specific users. The assistant has a persistent memory and recalls relevant information to respond to users. To customize the assistant and add your data to its memory see examples [here](https://github.com/ion2088/firedust/blob/master/examples/deploy_to_slack.py).
 
 
 ## Quickstart
 
 ### 0. End Game
-The quickest way to deploy the assistant on Slack is to use [firedust](https://github.com/ion2088/firedust) interface deploy capabilities. You can set it up and running in a few minutes by following this example [Firedust AI Quickstarts](https://firedust.ai/quickstarts).
+The quickest way to deploy the assistant on Slack is to use [firedust](https://github.com/ion2088/firedust) interface deploy capabilities. You can set it up and running in a few minutes by following this [example](https://firedust.ai/quickstarts).
 
 To deploy the app on your server, follow the steps below.
 
