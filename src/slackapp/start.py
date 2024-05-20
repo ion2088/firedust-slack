@@ -275,8 +275,12 @@ async def group_left(event: Dict[str, Any], ack: AsyncAck) -> None:
     """
     try:
         await ack()
-        assistant = await load_assistant()
-        await assistant.memory.erase_chat_history(user=event["channel"])
+        bot_id = await get_bot_user_id()
+        is_assistant = event["user"] == bot_id
+
+        if is_assistant:
+            assistant = await load_assistant()
+            await assistant.memory.erase_chat_history(user=event["channel"])
     except Exception as e:
         raise SlackAppError(message=str(e))
 
@@ -292,27 +296,11 @@ async def group_deleted(event: Dict[str, Any], ack: AsyncAck) -> None:
     """
     try:
         await ack()
-        assistant = await load_assistant()
-        await assistant.memory.erase_chat_history(user=event["channel"])
-    except Exception as e:
-        raise SlackAppError(message=str(e))
+        bot_id = await get_bot_user_id()
+        is_assistant = event["user"] == bot_id
 
-
-@app.event("app_uninstalled")
-async def app_uninstalled(client: AsyncWebClient, ack: AsyncAck) -> None:
-    """
-    Handle the uninstallation of the app.
-
-    Args:
-        client: Slack WebClient instance.
-    """
-    try:
-        await ack()
-        channels = await client.conversations_list(
-            types="public_channel,private_channel"
-        )
-        assistant = await load_assistant()
-        for channel in channels["channels"]:
-            await assistant.memory.erase_chat_history(user=channel["id"])
+        if is_assistant:
+            assistant = await load_assistant()
+            await assistant.memory.erase_chat_history(user=event["channel"])
     except Exception as e:
         raise SlackAppError(message=str(e))
