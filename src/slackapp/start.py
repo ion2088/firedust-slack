@@ -1,25 +1,3 @@
-"""
-AI Slack Assistant
-
-This code implements a Slack application to interacat with an AI assistant. Created with Firedust and Slack Bolt SDK for Python. 
-The assistant listens for various Slack events and commands to interact with users, 
-provide automated responses, and maintains memory of past interactions.
-
-Quickstart:
-1. Create an AI assistant with Firedust: https://firedust.ai/quickstarts
-2. Set the environment variables 
-    - `FIREDUST_API_KEY`: The API key for the Firedust API. See: https://firedust.ai
-    - `ASSISTANT_NAME`: The name of the AI assistant created with Firedust. See: https://firedust.ai/quickstarts
-    - `SLACK_SIGNING_SECRET`: The signing secret for the Slack app. See: https://api.slack.com/apps
-    - `SLACK_BOT_TOKEN`: The bot token for the Slack app. See: https://api.slack.com/apps
-3. Run the app `poetry run python -m slackapp start`
-
-Events Handled:
-- Mention events: Responds to mentions with the bot's name.
-- Message events: Replies to direct messages and learns from messages posted in channels where the assistant is present.
-- Member join/leave: When the assistant joins a channel, it learns the channel history. When it leaves, the history is erased.
-"""
-
 import logging
 import os
 from typing import Any, Dict
@@ -79,14 +57,19 @@ async def message(
     ack: AsyncAck,
 ) -> None:
     """
-    Handle incoming messages.
-    If the message is a direct message, reply to the user.
-    If the message is in a channel and doesn't mention the assistant, add it to memory.
+    Handle incoming messages:
+        - direct messages: reply to the user.
+        - channel messages that dont mention the assistant: add to memory.
+        - messages from the assistant: ignore, they are processed by the mention_event.
+        - messages from USLACKBOT: ignore.
+        - empty messages: ignore.
+        - messages that contain files: ignore, the assistant cannot process them yet.
 
     Args:
         client: Slack WebClient instance.
         event: Event data from Slack containing message details.
         say: Method to send messages in the current channel.
+        ack: Acknowledgement method to confirm event processing.
     """
     try:
         await ack()
@@ -174,7 +157,7 @@ async def hello_command(
     say: AsyncSay,
 ) -> None:
     """
-    Respond to the /test command.
+    Respond to the /test command. Commands are WIP and will be expanded in the future.
 
     Args:
         ack: Acknowledgement method to confirm command processing.
@@ -193,7 +176,7 @@ async def member_join(
     client: AsyncWebClient, event: Dict[str, Any], ack: AsyncAck
 ) -> None:
     """
-    Handle member joining a channel.
+    Handle member joining a channel. If its the assistant who joined, greet the channel and learn its message history.
 
     Args:
         client: Slack WebClient instance.
@@ -231,7 +214,7 @@ async def channel_left(
     ack: AsyncAck,
 ) -> None:
     """
-    Handle the bot leaving a channel.
+    Handle member leaving a channel. If it's the assistant who left, erase the chat history.
 
     Args:
         client: Slack WebClient instance.
@@ -249,25 +232,34 @@ async def channel_left(
         if is_assistant:
             # Erase chat history
             assistant = await load_assistant()
-            assistant.memory.erase_chat_history(user=event["channel"])
+            await assistant.memory.erase_chat_history(user=event["channel"])
     except Exception as e:
         raise SlackAppError(message=str(e))
 
 
 @app.event("channel_deleted")
-async def channel_deleted(event: Dict[str, Any], ack: AsyncAck) -> None:
+async def channel_deleted(
+    event: Dict[str, Any], context: AsyncBoltContext, ack: AsyncAck
+) -> None:
     """
-    Handle the deletion of a channel.
+    Handle the deletion of a channel, deleting its chat history from memory.
 
     Args:
+        client: Slack WebClient instance.
         event: Event data from Slack containing channel details.
+        context: Additional context data about the bot's status.
         ack: Acknowledgement method to confirm event processing.
     """
     try:
         await ack()
-        # Forget channel history
-        assistant = await load_assistant()
-        await assistant.memory.erase_chat_history(user=event["channel"])
+        bot_id = await get_bot_user_id()
+        is_assistant = context.get("bot_user_id", None) == bot_id
+
+        # If the assistant left the channel
+        if is_assistant:
+            # Erase chat history
+            assistant = await load_assistant()
+            await assistant.memory.erase_chat_history(user=event["channel"])
     except Exception as e:
         raise SlackAppError(message=str(e))
 
@@ -275,7 +267,7 @@ async def channel_deleted(event: Dict[str, Any], ack: AsyncAck) -> None:
 @app.event("group_left")
 async def group_left(event: Dict[str, Any], ack: AsyncAck) -> None:
     """
-    Handle the bot leaving a private group.
+    Handle member leaving a private group. If it's the assistant who left, erase the chat history.
 
     Args:
         event: Event data from Slack containing group details.

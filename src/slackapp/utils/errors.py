@@ -8,6 +8,10 @@ log = logging.getLogger("slackapp")
 
 
 class SlackAppError(Exception):
+    """
+    A custom error handler that logs the error and notifies the user with a message in Slack.
+    """
+
     def __init__(
         self,
         message: str,

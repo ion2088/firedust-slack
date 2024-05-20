@@ -43,16 +43,6 @@ def launch() -> None:
     log.info("1")
     time.sleep(1)
     log.info("Blast off!")
-    time.sleep(1)
-    log.info("Run the slack app with `poetry run python -m slackapp start`")
-
-
-@click.group(name="utils")
-def utils() -> None:
-    pass
-
-
-rocket.add_command(utils)
 
 
 if __name__ == "__main__":

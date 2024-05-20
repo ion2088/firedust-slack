@@ -1,16 +1,22 @@
 import os
 
 import firedust
-from firedust._private._assistant import Assistant
+from firedust._private._assistant import AsyncAssistant
 from firedust.utils.types.assistant import UserMessage
 from slack_sdk.web.async_client import AsyncWebClient
 
 from slackapp.utils.slack import format_slack_message
 
+"""
+Note:   Firedust keeps messages private between users by default. To facilitate group conversations,
+        we use the channel ID as the user ID and apply special message formatting to 
+        differentiate between users in the same channel.
+"""
 
-async def load_assistant() -> Assistant:
+
+async def load_assistant() -> AsyncAssistant:
     """
-    Loads the assistant using the ASSISTANT_ID environment variable.
+    Loads the AI assistant, using the ASSISTANT_NAME environment variable.
 
     Returns:
         Assistant: The assistant.
@@ -69,7 +75,7 @@ async def reply_to_message(
     channel_id: str,
 ) -> str:
     """
-    Replies to a message in a channel.
+    Generates a reply to a message from a user in a channel.
 
     Args:
         client (AsyncWebClient): The Slack client.

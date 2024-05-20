@@ -2,7 +2,7 @@ import asyncio
 import re
 from typing import Dict, List, Tuple
 
-from firedust._private._assistant import Assistant
+from firedust._private._assistant import AsyncAssistant
 from firedust.utils.types.assistant import UserMessage
 from slack_sdk.web.async_client import AsyncWebClient
 
@@ -11,14 +11,14 @@ from slackapp.utils.decorators import retry
 # A quick cache implementation to store frequently requested values
 _expiration_time = float
 _value = str
-user_name_cache: Dict[str, Tuple[_value, _expiration_time]] = {}
-channel_name_cache: Dict[str, Tuple[_value, _expiration_time]] = {}
+_user_name_cache: Dict[str, Tuple[_value, _expiration_time]] = {}
+_channel_name_cache: Dict[str, Tuple[_value, _expiration_time]] = {}
 
 
 @retry()
 async def get_user_name(client: AsyncWebClient, user: str) -> str:
     """
-    Get the name of a user.
+    Get the name of a user from a user ID string.
 
     Args:
         client (AsyncWebClient): The Slack client.
@@ -28,8 +28,8 @@ async def get_user_name(client: AsyncWebClient, user: str) -> str:
         str: The name of the user.
     """
     # Check if the user name is already cached and not expired
-    if user in user_name_cache:
-        cached_value, expiration_time = user_name_cache[user]
+    if user in _user_name_cache:
+        cached_value, expiration_time = _user_name_cache[user]
         if expiration_time > asyncio.get_event_loop().time():
             return cached_value
 
@@ -44,7 +44,7 @@ async def get_user_name(client: AsyncWebClient, user: str) -> str:
     expiration_time = asyncio.get_event_loop().time() + 600
 
     # Cache the user name with expiration time
-    user_name_cache[user] = (user_name, expiration_time)
+    _user_name_cache[user] = (user_name, expiration_time)
 
     return user_name
 
@@ -62,8 +62,8 @@ async def get_channel_name(client: AsyncWebClient, channel_id: str) -> str:
         str: The name of the channel.
     """
     # Check if the channel name is already cached and not expired
-    if channel_id in channel_name_cache:
-        cached_value, expiration_time = channel_name_cache[channel_id]
+    if channel_id in _channel_name_cache:
+        cached_value, expiration_time = _channel_name_cache[channel_id]
         if expiration_time > asyncio.get_event_loop().time():
             return cached_value
 
@@ -78,7 +78,7 @@ async def get_channel_name(client: AsyncWebClient, channel_id: str) -> str:
     expiration_time = asyncio.get_event_loop().time() + 600
 
     # Cache the channel name with expiration time
-    channel_name_cache[channel_id] = (channel_name, expiration_time)
+    _channel_name_cache[channel_id] = (channel_name, expiration_time)
 
     return channel_name
 
@@ -101,13 +101,13 @@ async def get_bot_user_id(client: AsyncWebClient) -> str:
 
 
 async def learn_channel_history_on_join(
-    assistant: Assistant, client: AsyncWebClient, channel_id: str
+    assistant: AsyncAssistant, client: AsyncWebClient, channel_id: str
 ) -> None:
     """
     Learn the channel history when the bot joins a channel.
 
     Args:
-        assistant (Assistant): The assistant.
+        assistant (AsyncAssistant): The assistant.
         client (AsyncWebClient): The Slack client.
         event (Dict[str, Any]): The event data.
     """
