@@ -2,8 +2,7 @@ import asyncio
 import re
 from typing import Dict, List, Tuple
 
-from firedust._private._assistant import AsyncAssistant
-from firedust.utils.types.assistant import UserMessage
+from firedust.types import AsyncAssistant, Message
 from slack_sdk.web.async_client import AsyncWebClient
 
 from slackapp.utils.decorators import retry
@@ -70,9 +69,12 @@ async def get_channel_name(client: AsyncWebClient, channel_id: str) -> str:
     response = await client.conversations_info(channel=channel_id)
     assert isinstance(response.data, dict)
 
-    channel_name: str = (
-        response.data["channel"].get("name") or response.data["channel"]["id"]
-    )
+    if response.data["channel"].get("is_im", False):
+        channel_name = "Direct Message"
+    else:
+        channel_name = (
+            response.data["channel"].get("name") or response.data["channel"]["id"]
+        )
 
     # Set expiration time to 10 minutes from now
     expiration_time = asyncio.get_event_loop().time() + 600
@@ -135,10 +137,11 @@ async def learn_channel_history_on_join(
                 channel_id=channel_id,
             )
             all_messages.append(
-                UserMessage(
+                Message(
                     assistant=assistant.config.name,
                     user=message["user"],
                     message=formatted_message,
+                    author="user",
                 )
             )
 
@@ -150,7 +153,7 @@ async def learn_channel_history_on_join(
         cursor = response["response_metadata"]["next_cursor"]
 
     # Save messages to the assistant's memory
-    await assistant.learn.chat_messages(messages=all_messages)
+    await assistant.memory.add_chat_history(messages=all_messages)
 
     # Notify channel that the assistant has learned channel history
     await client.chat_postMessage(
@@ -184,7 +187,7 @@ async def format_slack_message(
     user_name = await get_user_name(client, user)
     message = await replace_mentions_with_user_names(client, message)
     formatted_message = f"""
-    Slack channel: {channel_name}.
+    Slack channel: {channel_name}
     From {user_name}:
 
     {message}

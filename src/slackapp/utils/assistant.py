@@ -1,8 +1,7 @@
 import os
 
 import firedust
-from firedust._private._assistant import AsyncAssistant
-from firedust.utils.types.assistant import UserMessage
+from firedust.types import AsyncAssistant, Message
 from slack_sdk.web.async_client import AsyncWebClient
 
 from slackapp.utils.slack import format_slack_message
@@ -56,13 +55,14 @@ async def learn_message(
         user=user,
         channel_id=channel_id,
     )
-    await assistant.learn.chat_messages(
+    await assistant.memory.add_chat_history(
         messages=[
-            UserMessage(
+            Message(
                 assistant=assistant.config.name,
                 user=channel_id,
                 timestamp=timestamp,
                 message=formatted_message,
+                author="user",
             )
         ],
     )

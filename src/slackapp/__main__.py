@@ -1,6 +1,5 @@
 import asyncio
 import logging
-import time
 
 import click
 from slack_bolt.adapter.socket_mode.async_handler import AsyncSocketModeHandler
@@ -32,17 +31,6 @@ def start() -> None:
         await handler.start_async()
 
     asyncio.run(async_start())
-
-
-@rocket.command()
-def launch() -> None:
-    log.info("3")
-    time.sleep(1)
-    log.info("2")
-    time.sleep(1)
-    log.info("1")
-    time.sleep(1)
-    log.info("Blast off!")
 
 
 if __name__ == "__main__":

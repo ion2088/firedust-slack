@@ -195,9 +195,10 @@ async def member_join(
         if is_assistant:
             # Say hello and learn the channel's message history
             assistant = await load_assistant()
+            assert assistant.config.interfaces.slack is not None  # keep mypy happy
             await client.chat_postMessage(
                 channel=event["channel"],
-                text=f"Hello! I'm {assistant.config.name}, a helpful AI assistant. To interact with me, just mention my name or send me a direct message.",
+                text=assistant.config.interfaces.slack.greeting,
             )
             await learn_channel_history_on_join(
                 assistant=assistant, client=client, channel_id=event["channel"]
@@ -239,7 +240,10 @@ async def channel_left(
 
 @app.event("channel_deleted")
 async def channel_deleted(
-    event: Dict[str, Any], context: AsyncBoltContext, ack: AsyncAck
+    client: AsyncWebClient,
+    event: Dict[str, Any],
+    context: AsyncBoltContext,
+    ack: AsyncAck,
 ) -> None:
     """
     Handle the deletion of a channel, deleting its chat history from memory.
@@ -252,7 +256,7 @@ async def channel_deleted(
     """
     try:
         await ack()
-        bot_id = await get_bot_user_id()
+        bot_id = await get_bot_user_id(client)
         is_assistant = context.get("bot_user_id", None) == bot_id
 
         # If the assistant left the channel
@@ -265,7 +269,9 @@ async def channel_deleted(
 
 
 @app.event("group_left")
-async def group_left(event: Dict[str, Any], ack: AsyncAck) -> None:
+async def group_left(
+    client: AsyncWebClient, event: Dict[str, Any], ack: AsyncAck
+) -> None:
     """
     Handle member leaving a private group. If it's the assistant who left, erase the chat history.
 
@@ -275,7 +281,7 @@ async def group_left(event: Dict[str, Any], ack: AsyncAck) -> None:
     """
     try:
         await ack()
-        bot_id = await get_bot_user_id()
+        bot_id = await get_bot_user_id(client)
         is_assistant = event["user"] == bot_id
 
         if is_assistant:
@@ -286,7 +292,9 @@ async def group_left(event: Dict[str, Any], ack: AsyncAck) -> None:
 
 
 @app.event("group_deleted")
-async def group_deleted(event: Dict[str, Any], ack: AsyncAck) -> None:
+async def group_deleted(
+    client: AsyncWebClient, event: Dict[str, Any], ack: AsyncAck
+) -> None:
     """
     Handle the deletion of a private group.
 
@@ -296,7 +304,7 @@ async def group_deleted(event: Dict[str, Any], ack: AsyncAck) -> None:
     """
     try:
         await ack()
-        bot_id = await get_bot_user_id()
+        bot_id = await get_bot_user_id(client)
         is_assistant = event["user"] == bot_id
 
         if is_assistant:
