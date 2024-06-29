@@ -1,14 +1,14 @@
-# AI Slack Assistant
+# Slack AI Assistant
 
-A simple implementation of a Slack app connected to an AI assistant, created with [firedust](https://github.com/ion2088/firedust). It handles group chats, direct messages and learns the channel message history when added to a group. The conversations are kept private within individual groups and with specific users. The assistant has a persistent memory and recalls relevant information to respond to users. To customize the assistant and add your data to its memory see examples [here](https://github.com/ion2088/firedust/blob/master/examples/deploy_to_slack.py).
+A straightforward implementation of a Slack app connected to a [firedust](https://github.com/ion2088/firedust) AI assistant. It supports group chats, direct messages, and learns the channel's message history when added to a group. Conversations are private within groups and with individual users. The assistant has persistent memory and recalls relevant information to respond effectively. To customize the assistant and add data to its memory, see examples [here](https://github.com/ion2088/firedust/tree/master/examples/assistant).
 
 
 ## Quickstart
 
-### 0. End Game
-The quickest way to deploy the assistant on Slack is to use [firedust](https://github.com/ion2088/firedust) interface deploy capabilities. You can set it up and running in a few minutes by following this [example](https://firedust.ai/quickstarts).
+### 0. Overview
+Deploy the assistant on Slack quickly using firedust's capabilities. Follow [this](https://github.com/ion2088/firedust/blob/master/examples/assistant/deploy_on_slack.py) example for a quick setup.
 
-To deploy the app on your server, follow the steps below.
+To deploy the app on your server, follow the steps below:
 
 ### 1. Prerequisites
 - Python 3.10+
@@ -20,17 +20,17 @@ poetry install
 ```
 
 ### 3. Create an assistant
-Create an AI assistant using [firedust](https://github.com/ion2088/firedust) and note down the API key. [Example](https://github.com/ion2088/firedust/tree/master/examples).
+Use [firedust](https://github.com/ion2088/firedust) to create an AI assistant and note the API key. See [this example](https://github.com/ion2088/firedust/blob/master/examples/assistant/quickstart.py).
 
 ### 4. Create a Slack App
-Create a new Slack app and note down the signing secret and bot token. [Example](https://api.slack.com/apps?new_app).
+Create a new Slack app and note the signing secret and bot token. Get [started here](https://api.slack.com/apps?new_app).
 
 ### 5. Environment Variables
-Set up the following environment variables:
+Configure the following environment variables:
 - `FIREDUST_API_KEY`: Your Firedust API key.
-- `ASSISTANT_NAME`: Name of the AI assistant created with Firedust.
-- `SLACK_SIGNING_SECRET`: Signing secret for your Slack app.
-- `SLACK_BOT_TOKEN`: Bot token for your Slack app.
+- `ASSISTANT_NAME`: The name of your AI assistant.
+- `SLACK_SIGNING_SECRET`: Your Slack app's signing secret.
+- `SLACK_BOT_TOKEN`: Your Slack app's bot token.
 
 ### 6. Run the App
 ```sh
@@ -40,17 +40,10 @@ poetry run python -m slackapp start
 ## Features
 
 **Add To Channels:**
-Add the assistant to your channels and easily interact with it within a group just by mentioning it in a message. When added to a group, it learns the message history and can recall even very old messages if they are relevant to the query. All conversations are private to a specific channel.
+Invite the assistant to your channels and interact in a group by @mentioning it in messages. It learns the message history and can recall old messages if relevant. All conversations remain private to the specific channel.
 
 **Direct Messages:**
-Send the assistant a direct message in Slack to interact with it. All private conversations with users are kept confidential.
+Interact with the assistant via direct messages in Slack. These conversations are as well confidential.
 
 **Train On Your Data:**
-The assistant's memory can be enhanced with specialised data that it can recall, if relevant, to answer a specific query. For exmaples how to add your data to the assitant's memory see here: 
-
-
-## WIP
-
-- [ ] Add a license.
-- [ ] Fix the urls in examples.
-- [ ] Add commands support.
+Enhance the assistant's memory with specialized data for more accurate responses. For examples on adding data to the assistant's memory, see here: [Firedust Examples](https://github.com/ion2088/firedust/tree/master/examples/assistant).
