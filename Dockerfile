@@ -35,20 +35,3 @@ RUN git config --global --add safe.directory /workspaces/slackapp && \
     git config --global user.name "$DEV_NAME"
 
 COPY . .
-
-# --------------------------------------------------
-# Production image
-# --------------------------------------------------
-FROM base AS slackapp-prod
-
-ENV ENV="prod"
-
-# Install production dependencies only
-RUN poetry install --no-dev
-
-COPY . .
-COPY src/slackapp slackapp/
-
-EXPOSE 8080
-
-CMD ["poetry", "run", "uvicorn", "slackapp.api.main:slackapp", "--host", "0.0.0.0", "--port", "8080"]
