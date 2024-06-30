@@ -18,7 +18,7 @@ async def load_assistant() -> AsyncAssistant:
     Loads the AI assistant, using the ASSISTANT_NAME environment variable.
 
     Returns:
-        Assistant: The assistant.
+        AsyncAssistant: The AI assistant.
     """
     assistant_name = os.environ.get("ASSISTANT_NAME")
     if assistant_name is None:

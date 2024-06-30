@@ -29,7 +29,7 @@ class SlackAppError(Exception):
         # Notify the user if client and channel_id are provided
         if self.client and self.channel_id:
             error_message = f"""
-            Apologies, I encountered an unexpected error. Our team received a note about this and is looking into it. For more details, please contact us at support@firedust.io and mention error code `{self.error_code}`.
+            Apologies, I encountered an unexpected error. Our team received a note about this and is looking into it. For more details, please contact us at firedvst@gmail.com and mention error code `{self.error_code}`.
             """
             await self.client.chat_postMessage(
                 channel=self.channel_id, text=error_message

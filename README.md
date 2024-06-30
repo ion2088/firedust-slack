@@ -20,7 +20,7 @@ poetry install
 ```
 
 ### 3. Create an assistant
-Use [firedust](https://github.com/ion2088/firedust) to create an AI assistant and note the API key. See [this example](https://github.com/ion2088/firedust/blob/master/examples/assistant/quickstart.py).
+Use [firedust](https://github.com/ion2088/firedust) to create an AI assistant. See [this example](https://github.com/ion2088/firedust/blob/master/examples/assistant/quickstart.py).
 
 ### 4. Create a Slack App
 Create a new Slack app and note the signing secret and bot token. Get [started here](https://api.slack.com/apps?new_app).
@@ -46,4 +46,4 @@ Invite the assistant to your channels and interact in a group by @mentioning it 
 Interact with the assistant via direct messages in Slack. These conversations are as well confidential.
 
 **Train On Your Data:**
-Enhance the assistant's memory with specialized data for more accurate responses. For examples on adding data to the assistant's memory, see here: [Firedust Examples](https://github.com/ion2088/firedust/tree/master/examples/assistant).
+Enhance the assistant's memory with specialized data for more accurate responses. For examples on adding data to the assistant's memory, see here: [firedust examples](https://github.com/ion2088/firedust/tree/master/examples/assistant).
